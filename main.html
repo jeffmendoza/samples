@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>Todos</title>
+    <link rel="stylesheet" href="/static/mdl/material.min.css">
+    <script src="/static/mdl/material.min.js"></script>
+    <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+      section.section--center {
+      max-width: 860px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Always shows a header, even in smaller screens. -->
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row" data-upgraded=",MaterialRipple">
+          <!-- Title -->
+          <span class="mdl-layout-title">Todos</span>
+          <!-- Add spacer, to align navigation to the right -->
+          <div class="mdl-layout-spacer"></div>
+        </div>
+
+      </header>
+
+      <main class="mdl-layout__content">
+        <div class="page-content">
+
+          <section class="section--center mdl-grid mdl-grid--no-spacing">
+            <div class="mdl-cell mdl-cell--12-col">
+
+              <!-- Textfield with Floating Label -->
+
+              <form action="/add" method="POST">
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label textfield-demo">
+                  <input class="mdl-textfield__input" type="text" id="content" name="content"/>
+                  <label class="mdl-textfield__label" for="content">New Todo...</label>
+                </div>
+                <!-- Colored icon button -->
+                <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--accent" type="submit">
+                  <i class="material-icons">add_circle</i>
+                </button>
+              </form>
+              <table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+                <thead>
+                  <tr>
+                    <th class="mdl-data-table__cell--non-numeric">Todo</th>
+                    <th class="mdl-data-table__cell--non-numeric">Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+        {{range .Todos }}
+                  <tr>
+                    <td class="mdl-data-table__cell--non-numeric">{{.Content}}</td>
+                    <td class="mdl-data-table__cell--non-numeric">
+                      <a href="/delete?id={{.Id}}">
+                        <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored">
+                          <i class="material-icons">delete</i>
+                        </button>
+                      </a>
+                    </td>
+                  </tr>
+        {{end}}
+                </tbody>
+              </table>
+
+
+            </div>
+          </section>
+
+        </div> <!-- page content -->
+      </main>
+    </div>
+  </body>
+</html>
