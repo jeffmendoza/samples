@@ -1,19 +1,3 @@
-/*
-Copyright 2015 The Kubernetes Authors All rights reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package main
 
 import (
@@ -22,27 +6,22 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type Todo struct {
+	Id      int
+	Content string
+}
+
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "sqlite.db")
+	db, err := sql.Open("sqlite3", os.Args[1])
 	if err != nil {
 		return db, fmt.Errorf("Error opening db: %v", err)
 	}
-
-	// _, err = db.Exec(
-	// 	"CREATE DATABASE IF NOT EXISTS todos;")
-	// if err != nil {
-	// 	return db, fmt.Errorf("Error creating db: %v", err)
-	// }
-
-	// _, err = db.Exec(
-	// 	"USE todos;")
-	// if err != nil {
-	// 	return db, fmt.Errorf("Error using db: %v", err)
-	// }
 
 	_, err = db.Exec(
 		"CREATE TABLE IF NOT EXISTS entries " +
@@ -53,11 +32,6 @@ func connect() (*sql.DB, error) {
 
 	log.Printf("Database connected and setup")
 	return db, nil
-}
-
-type Todo struct {
-	Id      int
-	Content string
 }
 
 func getTodos(db *sql.DB) ([]Todo, error) {
@@ -93,12 +67,20 @@ func addTodo(db *sql.DB, tt Todo) error {
 	return nil
 }
 
-type GBHandler struct {
+func deleteTodo(db *sql.DB, id int) error {
+	_, err := db.Exec("DELETE FROM entries WHERE id = ?;", id)
+	if err != nil {
+		return fmt.Errorf("Error inserting post: %v", err)
+	}
+	return nil
+}
+
+type THandler struct {
 	db *sql.DB
 	ts *template.Template
 }
 
-func (hh GBHandler) ServeHTTP(ww http.ResponseWriter, rr *http.Request) {
+func (hh THandler) ServeHTTP(ww http.ResponseWriter, rr *http.Request) {
 	var info struct {
 		Todos []Todo
 	}
@@ -125,6 +107,7 @@ func (hh PHandler) ServeHTTP(ww http.ResponseWriter, rr *http.Request) {
 	log.Printf("New todo: %v", tt.Content)
 	if err := addTodo(hh.db, tt); err != nil {
 		http.Error(ww, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	http.Redirect(ww, rr, "/", http.StatusFound)
 }
@@ -134,7 +117,15 @@ type DHandler struct {
 }
 
 func (hh DHandler) ServeHTTP(ww http.ResponseWriter, rr *http.Request) {
-	// get id from request, delete from database
+	id, err := strconv.Atoi(rr.FormValue("id"))
+	if err != nil {
+		http.Error(ww, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := deleteTodo(hh.db, id); err != nil {
+		http.Error(ww, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(ww, rr, "/", http.StatusFound)
 }
 
@@ -146,8 +137,8 @@ func main() {
 
 	ts := template.Must(template.ParseFiles("main.html"))
 
-	gbh := GBHandler{db: db, ts: ts}
-	http.Handle("/", gbh)
+	th := THandler{db: db, ts: ts}
+	http.Handle("/", th)
 
 	ph := PHandler{db: db}
 	http.Handle("/add", ph)
