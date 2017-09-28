@@ -1,0 +1,21 @@
+{
+    "builders": [
+        {
+            "type": "googlecompute",
+            "project_id": "<YOUR_PROJECT_ID>",
+            "source_image_family": "debian-9",
+            "zone": "us-central1-f",
+            "ssh_username": "packer"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sleep 30",
+                "sudo apt-get update",
+                "sudo apt-get install -y redis-server"
+            ]
+        }
+    ]
+}
