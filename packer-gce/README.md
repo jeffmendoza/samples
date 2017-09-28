@@ -27,9 +27,11 @@ $
 
 Use one of the two options.
 
-1. Run packer on a GCE VM. Create the VM with the scopes needed to perform packer operations.
+1. Run packer on a GCE VM. Create the VM with the scopes needed to
+   perform packer operations.
 
-2. Use the cloud sdk to set Application Default credentials with `gcloud auth application-default login`
+2. Use the cloud sdk to set Application Default credentials with
+   `gcloud auth application-default login`
 
 ## Review the template
 
